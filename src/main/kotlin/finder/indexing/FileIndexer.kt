@@ -11,7 +11,7 @@ class FileIndexer(options: DuplicateFinderOptions) : ContentIndexer(options) {
         val fileContent = path.readText()
         return if (fileContent.length >= options.minLength) {
             val ngramIndex = buildMap<Ngram, MutableList<Chunk>> {
-                indexChunk(fileContent, pathFromRoot.toString(), 0, "line", options)
+                indexChunk(fileContent, pathFromRoot.toString(), "0:0", "line", options)
             }
             mapOf(fileContent.length to ngramIndex)
         } else emptyMap()

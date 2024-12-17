@@ -1,5 +1,6 @@
 package finder.output
 
+import com.google.gson.Gson
 import finder.DuplicateFinderOptions
 import finder.DuplicateFinderReport
 import finder.indexing.Chunk
@@ -13,27 +14,48 @@ fun printToFiles(
 ) {
     Files.createDirectories(options.outputDirectory)
 
-    report.duplicates.toList()
-        .distinctBy { it.first.content }
+    val processedChunks = mutableSetOf<Chunk>()
+    val jsonDocs = mutableListOf<Doc>()
+
+    report.duplicates.toList().distinctBy { it.first.content }
         .forEach { (referenceChunk, duplicateChunks) ->
-            val fileName =
-                "${referenceChunk.path.replace("/", "-").replace("\\", "")}_" +
-                        "${referenceChunk.lineNumber}_" +
-                        "${duplicateChunks.size}.txt"
+//            val fileName =
+//                "${referenceChunk.path.replace("/", "-").replace("\\", "")}_" +
+//                        "${referenceChunk.lineNumber}_" +
+//                        "${duplicateChunks.size}.txt"
+//
+//            val outputFile = options.outputDirectory.resolve(fileName)
+//
+//            val content = buildString {
+//                referenceChunkHeader()
+//                referenceChunkInfo(referenceChunk)
+//                referenceChunkContent(referenceChunk)
+//                separator()
+//                duplicateChunksHeader()
+//                duplicateChunksInfo(referenceChunk, duplicateChunks, options)
+//            }
+//
+//            outputFile.writeText(content.toString())
 
-            val outputFile = options.outputDirectory.resolve(fileName)
-
-            val content = buildString {
-                referenceChunkHeader()
-                referenceChunkInfo(referenceChunk)
-                referenceChunkContent(referenceChunk)
-                separator()
-                duplicateChunksHeader()
-                duplicateChunksInfo(referenceChunk, duplicateChunks, options)
+            if (referenceChunk !in processedChunks && !referenceChunk.path.contains("Generated")) {
+                val locations = duplicateChunks.filter { chunk ->
+                    chunk.content.replace("\\s".toRegex(), "") != referenceChunk.content.replace("\\s".toRegex(), "")
+                }.map { chunk ->
+                    "${chunk.path}:${chunk.lineNumber}"
+                }
+                val doc = Doc(
+                    query = referenceChunk.content,
+                    locations = locations
+                )
+                jsonDocs.add(doc)
+                processedChunks.add(referenceChunk)
+                processedChunks.addAll(duplicateChunks)
             }
-
-            outputFile.writeText(content.toString())
         }
+
+    val json = Gson().toJson(jsonDocs)
+    val jsonFile = options.outputDirectory.resolve("almost_matches.json")
+    jsonFile.writeText(json)
 }
 
 private fun StringBuilder.referenceChunkHeader() = appendLine("Reference chunk:").appendBlankLine()
@@ -50,3 +72,8 @@ private fun StringBuilder.duplicateChunksInfo(rChunk: Chunk, dChunks: List<Chunk
                     "${dChunk.lineNumber}\n"
         )
     }
+
+data class Doc(
+    val query: String,
+    val locations: List<String>
+)

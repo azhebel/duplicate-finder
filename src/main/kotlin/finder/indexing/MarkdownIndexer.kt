@@ -27,7 +27,7 @@ class MarkdownIndexer(
             ngramIndex.indexChunk(
                 content = content,
                 path = pathFromRoot.toString(),
-                lineNumber = block.sourceSpans.first().lineIndex,
+                lineNumber = "${block.sourceSpans.first().lineIndex}:${block.sourceSpans.first().columnIndex}",
                 type = type,
                 options = options
             )

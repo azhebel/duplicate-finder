@@ -3,7 +3,7 @@ package finder.indexing
 class Chunk(
     val content: String,
     val path: String,
-    val lineNumber: Int,
+    val lineNumber: String,
     @Suppress("unused") val type: String,
 ) {
     val preview: String
@@ -28,7 +28,7 @@ class Chunk(
     
     override fun hashCode(): Int {
         var result = path.hashCode()
-        result = 31 * result + lineNumber
+        result = 31 * result + lineNumber.hashCode()
         return result
     }
 }

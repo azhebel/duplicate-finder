@@ -16,7 +16,7 @@ class LineIndexer(
                 val length = line.length
                 val ngramIndex = getOrPut(length) { mutableMapOf() }
                 val lineNumber = i + 1
-                ngramIndex.indexChunk(line, pathFromRoot.toString(), lineNumber, "line", options)
+                ngramIndex.indexChunk(line, pathFromRoot.toString(), lineNumber.toString(), "line", options)
             }
         }
         return groupedByLength

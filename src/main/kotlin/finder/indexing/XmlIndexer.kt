@@ -1,9 +1,12 @@
 package finder.indexing
 
-import finder.*
+import finder.DuplicateFinderOptions
+import finder.Length
+import finder.Ngram
 import java.io.FileInputStream
 import java.nio.file.Path
-import javax.xml.stream.*
+import javax.xml.stream.XMLInputFactory
+import javax.xml.stream.XMLStreamConstants
 
 class XmlIndexer(
     options: DuplicateFinderOptions,
@@ -19,6 +22,7 @@ class XmlIndexer(
             val groupedByLength = mutableMapOf<Int, MutableMap<String, MutableList<Chunk>>>()
 
             var currentTagName: String? = null
+            var currentTagOffset = "0:0"
             val stack = ArrayDeque<String>()
             val contentBuilder = StringBuilder()
 
@@ -26,6 +30,7 @@ class XmlIndexer(
                 when (xmlStreamReader.next()) {
                     XMLStreamConstants.START_ELEMENT -> {
                         currentTagName = xmlStreamReader.localName
+                        currentTagOffset = "${xmlStreamReader.location.lineNumber}:${xmlStreamReader.location.columnNumber}"
                         stack.addLast(currentTagName)
                         contentBuilder.clear()
                     }
@@ -45,7 +50,7 @@ class XmlIndexer(
                             ngramIndex.indexChunk(
                                 content,
                                 pathFromRoot.toString(),
-                                xmlStreamReader.location.characterOffset - contentBuilder.length,
+                                currentTagOffset,
                                 "xml_$currentTagName",
                                 options
                             )

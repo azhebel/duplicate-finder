@@ -6,7 +6,7 @@ import finder.ngram.ngramProvider
 fun MutableMap<Ngram, MutableList<Chunk>>.indexChunk(
     content: String,
     path: String,
-    lineNumber: Int,
+    lineNumber: String,
     type: String,
     options: DuplicateFinderOptions
 ) {
